@@ -1,29 +1,24 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "ReactDemo/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    },
-    {
-      "src": "ExpressDemo/server.js",
-      "use": "@vercel/node"
+  "buildCommand": "cd ReactDemo && npm install && npm run build",
+  "outputDirectory": "ReactDemo/dist",
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs18.x"
     }
-  ],
-  "routes": [
+  },
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "ExpressDemo/server.js"
+      "source": "/api/(.*)",
+      "destination": "/api/index.js"
     },
     {
-      "src": "/(.*)",
-      "dest": "ReactDemo/dist/$1"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ],
   "env": {
-    "USE_MOCK": "true"
+    "USE_MOCK": "false",
+    "NODE_ENV": "production"
   }
 }
