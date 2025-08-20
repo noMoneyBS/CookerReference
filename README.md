@@ -9,9 +9,9 @@ cooker-reference/
 ├── 📦 package.json              # 总项目配置
 ├── 🚀 vercel.json              # Vercel部署配置
 ├── 📖 README.md                # 项目说明
-├── 📋 DEPLOYMENT.md            # 部署指南
+├── 📋 VERCEL_DEPLOYMENT.md     # Vercel部署指南
 ├── 🔧 .gitignore               # Git忽略文件
-├── 📁 ExpressDemo/             # 后端服务器 (Node.js + Express)
+├── 📁 ExpressDemo/             # 后端服务器 (Node.js + Express + PostgreSQL)
 │   ├── 🗄️ models/             # 数据库模型
 │   ├── 🛣️ routes/             # API路由
 │   ├── 🔧 services/            # 业务逻辑服务
@@ -22,9 +22,27 @@ cooker-reference/
 │   ├── 🌍 src/locales/         # 前端多语言
 │   ├── 🔌 src/api/             # API接口
 │   └── 📄 package.json         # 前端依赖
-└── 📁 api/                     # Vercel API入口
-    └── 📄 index.js             # Serverless函数入口
+└── 📁 api/                     # Vercel Serverless函数
+    ├── 📄 index.js             # 简单API入口（无数据库）
+    └── 📄 test.js              # API测试文件
 ```
+
+## 🏗️ 架构说明
+
+### 开发环境
+- **前端**: React + Vite (端口 5173)
+- **后端**: Express + PostgreSQL (端口 5001)
+- **数据库**: PostgreSQL
+
+### 生产环境
+- **前端**: 部署到 Vercel
+- **后端**: 部署到 Railway/Heroku/DigitalOcean 等平台
+- **数据库**: PostgreSQL (Supabase/Railway/Neon等)
+
+### 设计理念
+- **Vercel Serverless函数**: 只作为简单API入口，不包含数据库逻辑
+- **ExpressDemo**: 包含完整的数据库连接和业务逻辑
+- **前后端分离**: 通过环境变量配置API地址
 
 ## 🚀 快速开始
 
