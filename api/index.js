@@ -50,10 +50,43 @@ app.get('/api/debug', (req, res) => {
   });
 });
 
+// 检查依赖路由
+app.get('/api/check-deps', (req, res) => {
+  const deps = {
+    express: typeof express,
+    bcryptjs: 'not loaded',
+    sequelize: 'not loaded'
+  };
+  
+  try {
+    const bcryptjs = require('bcryptjs');
+    deps.bcryptjs = typeof bcryptjs;
+  } catch (e) {
+    deps.bcryptjs = 'error: ' + e.message;
+  }
+  
+  try {
+    const sequelize = require('sequelize');
+    deps.sequelize = typeof sequelize;
+  } catch (e) {
+    deps.sequelize = 'error: ' + e.message;
+  }
+  
+  res.json(deps);
+});
+
 // 使用ExpressDemo的所有路由
 console.log("🔧 开始加载ExpressDemo路由...");
 
+let routesLoaded = false;
+
 try {
+  console.log("📦 检查依赖...");
+  
+  // 检查必要的依赖
+  const bcryptjs = require('bcryptjs');
+  console.log("✅ bcryptjs 可用");
+  
   console.log("📦 加载用户认证路由...");
   const authRouter = require("../ExpressDemo/routes/auth");
   app.use("/api/auth", authRouter);
@@ -90,6 +123,7 @@ try {
   console.log("✅ 交互式聊天路由加载成功");
   
   console.log("🎉 所有ExpressDemo路由加载成功！");
+  routesLoaded = true;
   
 } catch (error) {
   console.error("❌ 路由加载失败:", error);
@@ -101,6 +135,7 @@ try {
       message: "API is running in fallback mode",
       error: error.message,
       stack: error.stack,
+      routesLoaded: routesLoaded,
       timestamp: new Date().toISOString()
     });
   });
@@ -143,6 +178,24 @@ try {
   });
 }
 
+// 路由状态检查
+app.get('/api/routes-status', (req, res) => {
+  res.json({
+    routesLoaded: routesLoaded,
+    availableRoutes: [
+      '/api/test',
+      '/api/health',
+      '/api/debug',
+      '/api/check-deps',
+      '/api/fallback',
+      '/api/routes-status',
+      '/api/auth/register',
+      '/api/auth/login'
+    ],
+    timestamp: new Date().toISOString()
+  });
+});
+
 // 错误处理中间件
 app.use((err, req, res, next) => {
   console.error('API Error:', err);
@@ -158,6 +211,7 @@ app.use('*', (req, res) => {
   res.status(404).json({ 
     error: 'Route not found',
     path: req.originalUrl,
+    routesLoaded: routesLoaded,
     timestamp: new Date().toISOString()
   });
 });
