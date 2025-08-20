@@ -2,11 +2,6 @@
   "version": 2,
   "buildCommand": "cd ReactDemo && npm install && npm run build",
   "outputDirectory": "ReactDemo/dist",
-  "functions": {
-    "api/**/*.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
   "rewrites": [
     {
       "source": "/api/(.*)",
