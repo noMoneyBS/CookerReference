@@ -22,18 +22,6 @@ app.use((req, res, next) => {
   }
 });
 
-// 初始化数据库（如果使用数据库模式）
-if (process.env.USE_MOCK !== "true") {
-  try {
-    const { initializeDatabase } = require("../ExpressDemo/config/database");
-    initializeDatabase()
-      .then(() => console.log("✅ 数据库连接成功"))
-      .catch((err) => console.error("❌ 数据库连接失败:", err));
-  } catch (error) {
-    console.error("❌ 数据库初始化失败:", error);
-  }
-}
-
 // 测试路由
 app.get('/api/test', (req, res) => {
   res.json({
@@ -53,40 +41,104 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// 调试路由 - 检查环境变量
+app.get('/api/debug', (req, res) => {
+  res.json({
+    USE_MOCK: process.env.USE_MOCK,
+    NODE_ENV: process.env.NODE_ENV,
+    timestamp: new Date().toISOString()
+  });
+});
+
 // 使用ExpressDemo的所有路由
+console.log("🔧 开始加载ExpressDemo路由...");
+
 try {
-  // 用户认证路由
-  app.use("/api/auth", require("../ExpressDemo/routes/auth"));
+  console.log("📦 加载用户认证路由...");
+  const authRouter = require("../ExpressDemo/routes/auth");
+  app.use("/api/auth", authRouter);
+  console.log("✅ 用户认证路由加载成功");
   
-  // 用户偏好路由
-  app.use("/api/preference", require("../ExpressDemo/routes/preference"));
+  console.log("📦 加载用户偏好路由...");
+  const preferenceRouter = require("../ExpressDemo/routes/preference");
+  app.use("/api/preference", preferenceRouter);
+  console.log("✅ 用户偏好路由加载成功");
   
-  // 食谱评分路由
-  app.use("/api/rating", require("../ExpressDemo/routes/rating"));
+  console.log("📦 加载食谱评分路由...");
+  const ratingRouter = require("../ExpressDemo/routes/rating");
+  app.use("/api/rating", ratingRouter);
+  console.log("✅ 食谱评分路由加载成功");
   
-  // 社区食谱路由
-  app.use("/api/community", require("../ExpressDemo/routes/community"));
+  console.log("📦 加载社区食谱路由...");
+  const communityRouter = require("../ExpressDemo/routes/community");
+  app.use("/api/community", communityRouter);
+  console.log("✅ 社区食谱路由加载成功");
   
-  // 聊天路由
-  app.use("/api/chat", require("../ExpressDemo/routes/chat"));
+  console.log("📦 加载聊天路由...");
+  const chatRouter = require("../ExpressDemo/routes/chat");
+  app.use("/api/chat", chatRouter);
+  console.log("✅ 聊天路由加载成功");
   
-  // 图片处理路由
-  app.use("/api/image", require("../ExpressDemo/routes/image"));
+  console.log("📦 加载图片处理路由...");
+  const imageRouter = require("../ExpressDemo/routes/image");
+  app.use("/api/image", imageRouter);
+  console.log("✅ 图片处理路由加载成功");
   
-  // 交互式聊天路由
-  app.use("/api/interactive", require("../ExpressDemo/routes/interactive"));
+  console.log("📦 加载交互式聊天路由...");
+  const interactiveRouter = require("../ExpressDemo/routes/interactive");
+  app.use("/api/interactive", interactiveRouter);
+  console.log("✅ 交互式聊天路由加载成功");
   
-  console.log("✅ 所有ExpressDemo路由加载成功");
+  console.log("🎉 所有ExpressDemo路由加载成功！");
   
 } catch (error) {
   console.error("❌ 路由加载失败:", error);
+  console.error("错误详情:", error.stack);
   
   // 如果路由加载失败，提供基本的Mock功能
   app.get('/api/fallback', (req, res) => {
     res.json({
       message: "API is running in fallback mode",
       error: error.message,
+      stack: error.stack,
       timestamp: new Date().toISOString()
+    });
+  });
+  
+  // 提供基本的Mock注册功能
+  app.post('/api/auth/register', (req, res) => {
+    const { username, email, password } = req.body;
+    
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+    
+    res.json({
+      success: true,
+      message: 'Registration successful (fallback mode)',
+      user: {
+        id: Date.now(),
+        email: email,
+        username: username || 'User'
+      }
+    });
+  });
+  
+  app.post('/api/auth/login', (req, res) => {
+    const { email, password } = req.body;
+    
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+    
+    res.json({
+      success: true,
+      message: 'Login successful (fallback mode)',
+      user: {
+        id: 1,
+        email: email,
+        username: 'User'
+      }
     });
   });
 }
