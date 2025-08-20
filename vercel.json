@@ -22,9 +22,5 @@
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ],
-  "env": {
-    "USE_MOCK": "true",
-    "NODE_ENV": "production"
-  }
+  ]
 }
