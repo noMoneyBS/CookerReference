@@ -1,6 +1,5 @@
 // Vercel API入口文件
 const express = require('express');
-const { initializeDatabase } = require('../ExpressDemo/config/database');
 
 const app = express();
 app.use(express.json());
@@ -21,24 +20,36 @@ app.use((req, res, next) => {
 
 // 判断当前模式
 const isMock = process.env.USE_MOCK === "true";
+console.log("🔧 当前模式:", isMock ? "Mock" : "Database");
 
-// 只在非Mock模式下初始化数据库
-if (!isMock) {
-  initializeDatabase()
-    .then(() => console.log("✅ PostgreSQL 数据库已初始化"))
-    .catch((err) => console.error("❌ 数据库初始化失败:", err));
-} else {
-  console.log("🔧 使用 Mock 模式，跳过数据库初始化");
+// 测试路由
+app.get('/test', (req, res) => {
+  res.json({
+    message: "API is working!",
+    timestamp: new Date().toISOString(),
+    mock: isMock
+  });
+});
+
+// 路由 - 使用 try-catch 包装
+try {
+  app.use("/auth", require("../ExpressDemo/routes/auth"));
+  app.use("/preference", require("../ExpressDemo/routes/preference"));
+  app.use("/rating", require("../ExpressDemo/routes/rating"));
+  app.use("/community", require("../ExpressDemo/routes/community"));
+  app.use("/chat", require("../ExpressDemo/routes/chat"));
+  app.use("/image", require("../ExpressDemo/routes/image"));
+  app.use("/interactive", require("../ExpressDemo/routes/interactive"));
+  console.log("✅ 所有路由加载成功");
+} catch (error) {
+  console.error("❌ 路由加载失败:", error);
 }
 
-// 路由
-app.use("/auth", require("../ExpressDemo/routes/auth"));
-app.use("/preference", require("../ExpressDemo/routes/preference"));
-app.use("/rating", require("../ExpressDemo/routes/rating"));
-app.use("/community", require("../ExpressDemo/routes/community"));
-app.use("/chat", require("../ExpressDemo/routes/chat"));
-app.use("/image", require("../ExpressDemo/routes/image"));
-app.use("/interactive", require("../ExpressDemo/routes/interactive"));
+// 添加错误处理中间件
+app.use((err, req, res, next) => {
+  console.error('API Error:', err);
+  res.status(500).json({ error: 'Internal Server Error', message: err.message });
+});
 
 // 导出为Vercel Serverless函数
 module.exports = app;
