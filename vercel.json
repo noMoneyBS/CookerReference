@@ -1,0 +1,29 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "ReactDemo/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    },
+    {
+      "src": "ExpressDemo/server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "ExpressDemo/server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "ReactDemo/dist/$1"
+    }
+  ],
+  "env": {
+    "USE_MOCK": "true"
+  }
+}
