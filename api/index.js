@@ -22,10 +22,14 @@ app.use((req, res, next) => {
 // 判断当前模式
 const isMock = process.env.USE_MOCK === "true";
 
-// 初始化数据库
-initializeDatabase()
-  .then(() => console.log("✅ PostgreSQL 数据库已初始化"))
-  .catch((err) => console.error("❌ 数据库初始化失败:", err));
+// 只在非Mock模式下初始化数据库
+if (!isMock) {
+  initializeDatabase()
+    .then(() => console.log("✅ PostgreSQL 数据库已初始化"))
+    .catch((err) => console.error("❌ 数据库初始化失败:", err));
+} else {
+  console.log("🔧 使用 Mock 模式，跳过数据库初始化");
+}
 
 // 路由
 app.use("/auth", require("../ExpressDemo/routes/auth"));

@@ -13,7 +13,7 @@
     }
   ],
   "env": {
-    "USE_MOCK": "false",
+    "USE_MOCK": "true",
     "NODE_ENV": "production"
   }
 }
