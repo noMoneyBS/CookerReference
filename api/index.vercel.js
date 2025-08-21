@@ -1,5 +1,5 @@
 // Import your server main file
-const app = require('./src/index');
+const app = require('./app/index');
 
 // Export a serverless function handler
 module.exports = (req, res) => {
