@@ -4,6 +4,14 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
-  // 在 vercel dev 模式下，不需要代理配置
-  // Vercel 会自动处理 /api 路由
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5001',
+        changeOrigin: true,
+        // 关键：把 /api 前缀去掉，转发为 /xxx
+        //rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+    },
+  },
 });
