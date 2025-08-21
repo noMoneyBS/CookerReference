@@ -1,15 +1,13 @@
-// Vercel Serverless API函数 - 使用ExpressDemo的所有功能
-const express = require('express');
+require("dotenv").config();
+const express = require("express");
+const { initializeDatabase } = require("./config/database");
 
-// 创建Express应用
 const app = express();
+app.use(express.json());
 
-// 基础中间件
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
-// CORS配置
+// 添加CORS支持
 app.use((req, res, next) => {
+  // 允许所有来源，适配Vercel部署
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
@@ -22,199 +20,45 @@ app.use((req, res, next) => {
   }
 });
 
-// 测试路由
-app.get('/api/test', (req, res) => {
-  res.json({
-    message: "Vercel API is working!",
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV,
-    mock: process.env.USE_MOCK === "true"
-  });
-});
+// 判断当前模式
+const isMock = process.env.USE_MOCK === "true";
 
-// 健康检查
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    database: process.env.USE_MOCK === "true" ? 'mock' : 'connected'
-  });
-});
-
-// 调试路由 - 检查环境变量
-app.get('/api/debug', (req, res) => {
-  res.json({
-    USE_MOCK: process.env.USE_MOCK,
-    NODE_ENV: process.env.NODE_ENV,
-    timestamp: new Date().toISOString()
-  });
-});
-
-// 检查依赖路由
-app.get('/api/check-deps', (req, res) => {
-  const deps = {
-    express: typeof express,
-    bcryptjs: 'not loaded',
-    sequelize: 'not loaded'
-  };
-  
-  try {
-    const bcryptjs = require('bcryptjs');
-    deps.bcryptjs = typeof bcryptjs;
-  } catch (e) {
-    deps.bcryptjs = 'error: ' + e.message;
-  }
-  
-  try {
-    const sequelize = require('sequelize');
-    deps.sequelize = typeof sequelize;
-  } catch (e) {
-    deps.sequelize = 'error: ' + e.message;
-  }
-  
-  res.json(deps);
-});
-
-// 使用ExpressDemo的所有路由
-console.log("🔧 开始加载ExpressDemo路由...");
-
-let routesLoaded = false;
-
-try {
-  console.log("📦 检查依赖...");
-  
-  // 检查必要的依赖
-  const bcryptjs = require('bcryptjs');
-  console.log("✅ bcryptjs 可用");
-  
-  console.log("📦 加载用户认证路由...");
-  const authRouter = require("../ExpressDemo/routes/auth");
-  app.use("/api/auth", authRouter);
-  console.log("✅ 用户认证路由加载成功");
-  
-  console.log("📦 加载用户偏好路由...");
-  const preferenceRouter = require("../ExpressDemo/routes/preference");
-  app.use("/api/preference", preferenceRouter);
-  console.log("✅ 用户偏好路由加载成功");
-  
-  console.log("📦 加载食谱评分路由...");
-  const ratingRouter = require("../ExpressDemo/routes/rating");
-  app.use("/api/rating", ratingRouter);
-  console.log("✅ 食谱评分路由加载成功");
-  
-  console.log("📦 加载社区食谱路由...");
-  const communityRouter = require("../ExpressDemo/routes/community");
-  app.use("/api/community", communityRouter);
-  console.log("✅ 社区食谱路由加载成功");
-  
-  console.log("📦 加载聊天路由...");
-  const chatRouter = require("../ExpressDemo/routes/chat");
-  app.use("/api/chat", chatRouter);
-  console.log("✅ 聊天路由加载成功");
-  
-  console.log("📦 加载图片处理路由...");
-  const imageRouter = require("../ExpressDemo/routes/image");
-  app.use("/api/image", imageRouter);
-  console.log("✅ 图片处理路由加载成功");
-  
-  console.log("📦 加载交互式聊天路由...");
-  const interactiveRouter = require("../ExpressDemo/routes/interactive");
-  app.use("/api/interactive", interactiveRouter);
-  console.log("✅ 交互式聊天路由加载成功");
-  
-  console.log("🎉 所有ExpressDemo路由加载成功！");
-  routesLoaded = true;
-  
-} catch (error) {
-  console.error("❌ 路由加载失败:", error);
-  console.error("错误详情:", error.stack);
-  
-  // 如果路由加载失败，提供基本的Mock功能
-  app.get('/api/fallback', (req, res) => {
-    res.json({
-      message: "API is running in fallback mode",
-      error: error.message,
-      stack: error.stack,
-      routesLoaded: routesLoaded,
-      timestamp: new Date().toISOString()
+// 初始化数据库
+if (process.env.USE_MOCK === "true") {
+  console.log("🔧 Mock 模式：跳过数据库初始化");
+} else {
+  initializeDatabase()
+    .then(() => console.log("✅ PostgreSQL 数据库已初始化"))
+    .catch((err) => {
+      console.error("❌ 数据库初始化失败:", err);
+      console.log("🔧 切换到 Mock 模式");
+      process.env.USE_MOCK = "true";
     });
-  });
-  
-  // 提供基本的Mock注册功能
-  app.post('/api/auth/register', (req, res) => {
-    const { username, email, password } = req.body;
-    
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
-    }
-    
-    res.json({
-      success: true,
-      message: 'Registration successful (fallback mode)',
-      user: {
-        id: Date.now(),
-        email: email,
-        username: username || 'User'
-      }
-    });
-  });
-  
-  app.post('/api/auth/login', (req, res) => {
-    const { email, password } = req.body;
-    
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
-    }
-    
-    res.json({
-      success: true,
-      message: 'Login successful (fallback mode)',
-      user: {
-        id: 1,
-        email: email,
-        username: 'User'
-      }
-    });
-  });
 }
 
-// 路由状态检查
-app.get('/api/routes-status', (req, res) => {
-  res.json({
-    routesLoaded: routesLoaded,
-    availableRoutes: [
-      '/api/test',
-      '/api/health',
-      '/api/debug',
-      '/api/check-deps',
-      '/api/fallback',
-      '/api/routes-status',
-      '/api/auth/register',
-      '/api/auth/login'
-    ],
-    timestamp: new Date().toISOString()
-  });
+// 路由 - 在 Vercel 环境中，路径已经去掉了 /api 前缀
+app.use("/auth", require("./routes/auth"));
+app.use("/preference", require("./routes/preference"));
+app.use("/rating", require("./routes/rating"));
+app.use("/community", require("./routes/community"));
+app.use("/chat", require("./routes/chat"));
+app.use("/image", require("./routes/image"));
+app.use("/interactive", require("./routes/interactive"));
+
+// 添加一个测试路由来验证 API 是否工作
+app.get("/test", (req, res) => {
+  res.json({ message: "API is working!", timestamp: new Date().toISOString() });
 });
 
-// 错误处理中间件
-app.use((err, req, res, next) => {
-  console.error('API Error:', err);
-  res.status(500).json({ 
-    error: 'Internal Server Error', 
-    message: err.message,
-    timestamp: new Date().toISOString()
-  });
-});
+const PORT = process.env.PORT || 5001;
 
-// 404处理
-app.use('*', (req, res) => {
-  res.status(404).json({ 
-    error: 'Route not found',
-    path: req.originalUrl,
-    routesLoaded: routesLoaded,
-    timestamp: new Date().toISOString()
-  });
-});
-
-// Vercel Serverless函数导出
+// 导出app供Vercel使用
 module.exports = app;
+
+// 只在开发环境下启动服务器
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`🔧 当前模式: ${isMock ? "Mock 模式 (不使用数据库)" : "数据库模式 (PostgreSQL)"}`);
+  });
+}

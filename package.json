@@ -1,60 +1,37 @@
 {
-  "name": "cooker-reference",
+  "name": "cooker-fullstack",
+  "private": true,
   "version": "1.0.0",
-  "description": "智能食谱推荐系统 - 全栈应用",
-  "main": "index.js",
+  "type": "module",
   "scripts": {
-    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "dev:backend": "cd ExpressDemo && npm run dev",
-    "dev:frontend": "cd ReactDemo && npm run dev",
-    "build": "cd ReactDemo && npm install && npm run build",
-    "build:frontend": "cd ReactDemo && npm run build",
-    "install:all": "npm install && cd ExpressDemo && npm install && cd ../ReactDemo && npm install",
-    "start": "cd ExpressDemo && npm start",
-    "reset-db": "cd ExpressDemo && npm run reset-db",
-    "test": "echo \"No tests specified\" && exit 0",
-    "lint": "npm run lint:frontend",
-    "lint:frontend": "cd ReactDemo && npm run lint"
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "api:dev": "cd api && npm run dev",
+    "api:start": "cd api && npm start",
+    "api:reset-db": "cd api && npm run reset-db",
+    "api:check-env": "cd api && npm run check-env",
+    "vercel-dev": "vite",
+    "vercel-build": "npm run build"
   },
-  "keywords": [
-    "recipe",
-    "recommendation",
-    "ai",
-    "react",
-    "express",
-    "nodejs",
-    "multilingual"
-  ],
-  "author": "Your Name",
-  "license": "MIT",
   "dependencies": {
-    "express": "^4.21.0",
-    "axios": "^1.7.7",
-    "bcryptjs": "^3.0.2",
-    "cors": "^2.8.5",
-    "dotenv": "^17.2.1",
-    "form-data": "^4.0.4",
-    "multer": "^1.4.5-lts.1",
-    "pg": "^8.16.3",
-    "pg-hstore": "^2.3.4",
-    "sanitize-html": "^2.17.0",
-    "sequelize": "^6.37.7",
-    "sharp": "^0.33.5",
-    "winston": "^3.17.0"
+    "axios": "^1.11.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
-  },
-  "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=8.0.0"
-  },
-  "repository": {
-    "type": "git",
-    "url": "your-repository-url"
-  },
-  "bugs": {
-    "url": "your-repository-url/issues"
-  },
-  "homepage": "your-repository-url#readme"
+    "@eslint/js": "^9.33.0",
+    "@types/react": "^19.1.10",
+    "@types/react-dom": "^19.1.7",
+    "@vitejs/plugin-react": "^5.0.0",
+    "autoprefixer": "^10.4.21",
+    "eslint": "^9.33.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "globals": "^16.3.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17",
+    "vite": "^7.1.2"
+  }
 }
