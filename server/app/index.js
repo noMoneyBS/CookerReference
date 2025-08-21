@@ -1,4 +1,10 @@
-require("dotenv").config();
+// 尝试加载环境变量，如果失败则继续
+try {
+  require("dotenv").config();
+} catch (error) {
+  console.log("🔧 无法加载 .env 文件，使用环境变量");
+}
+
 const express = require("express");
 const { initializeDatabase } = require("./config/database");
 
