@@ -7,8 +7,8 @@ const getApiBaseURL = () => {
     // 开发环境使用ExpressDemo服务器
     return "http://localhost:5001";
   } else {
-    // 生产环境使用相对路径，Vercel会自动处理
-    return "/api";
+    // 生产环境使用环境变量中的API地址
+    return import.meta.env.VITE_API_BASE_URL || "/api";
   }
 };
 
