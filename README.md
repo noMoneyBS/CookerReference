@@ -1,183 +1,139 @@
-# 🍳 CookerReference - 智能食谱推荐系统
+# Cooker Fullstack Application
 
-一个基于AI的全栈食谱推荐应用，支持多语言界面和个性化推荐。
+这是一个基于 Vercel 的全栈应用，包含 React 前端和 Express 后端。
 
-## 📁 项目结构
+## 项目结构
 
 ```
-cooker-reference/
-├── 📦 package.json              # 总项目配置
-├── 🚀 vercel.json              # Vercel部署配置
-├── 📖 README.md                # 项目说明
-├── 📋 VERCEL_DEPLOYMENT.md     # Vercel部署指南
-├── 🔧 .gitignore               # Git忽略文件
-├── 📁 ExpressDemo/             # 后端服务器 (Node.js + Express + PostgreSQL)
-│   ├── 🗄️ models/             # 数据库模型
-│   ├── 🛣️ routes/             # API路由
-│   ├── 🔧 services/            # 业务逻辑服务
-│   ├── 🌍 locales/             # 多语言配置
-│   └── 📄 server.js            # 服务器入口
-├── 📁 ReactDemo/               # 前端应用 (React + Vite)
-│   ├── 🧩 src/components/      # React组件
-│   ├── 🌍 src/locales/         # 前端多语言
-│   ├── 🔌 src/api/             # API接口
-│   └── 📄 package.json         # 前端依赖
-└── 📁 api/                     # Vercel Serverless函数
-    ├── 📄 index.js             # 简单API入口（无数据库）
-    └── 📄 test.js              # API测试文件
+root/
+├── api/                    # Express 后端
+│   ├── models/            # 数据模型
+│   ├── routes/            # API 路由
+│   ├── services/          # 业务逻辑服务
+│   ├── config/            # 配置文件
+│   ├── index.js           # Express 主文件（Vercel 入口）
+│   └── package.json       # 后端依赖
+├── src/                   # React 前端
+│   ├── components/        # React 组件
+│   ├── api/              # API 调用
+│   └── ...
+├── index.html            # 前端入口文件
+├── vite.config.js        # Vite 配置
+├── package.json          # 前端依赖和脚本
+└── vercel.json           # Vercel 部署配置
 ```
 
-## 🏗️ 架构说明
-
-### 开发环境
-- **前端**: React + Vite (端口 5173)
-- **后端**: Express + PostgreSQL (端口 5001)
-- **数据库**: PostgreSQL
-
-### 生产环境
-- **前端**: 部署到 Vercel
-- **后端**: 部署到 Railway/Heroku/DigitalOcean 等平台
-- **数据库**: PostgreSQL (Supabase/Railway/Neon等)
-
-### 设计理念
-- **Vercel Serverless函数**: 只作为简单API入口，不包含数据库逻辑
-- **ExpressDemo**: 包含完整的数据库连接和业务逻辑
-- **前后端分离**: 通过环境变量配置API地址
-
-## 🚀 快速开始
+## 开发环境设置
 
 ### 1. 安装依赖
+
 ```bash
-# 安装总项目依赖
+# 安装前端依赖
 npm install
 
-# 安装所有子项目依赖
-npm run install:all
+# 安装后端依赖
+cd api && npm install
 ```
 
-### 2. 启动开发环境
+### 2. 环境变量配置
+
+在 `api/` 目录下创建 `.env` 文件：
+
+```env
+# 数据库配置
+DATABASE_URL=your_postgresql_connection_string
+USE_MOCK=false
+
+# 其他配置
+PORT=5001
+NODE_ENV=development
+```
+
+### 3. 启动开发服务器
+
+#### 方式一：使用 Vercel Dev（推荐）
 ```bash
-# 同时启动前端和后端
+# 同时启动前端和后端（端口 3000）
+vercel dev
+```
+
+#### 方式二：分别启动
+```bash
+# 启动前端开发服务器（端口 3000）
 npm run dev
 
-# 或者分别启动
-npm run dev:backend  # 后端 (端口 5001)
-npm run dev:frontend # 前端 (端口 5173)
+# 启动后端开发服务器（端口 5001）
+npm run api:dev
 ```
 
-### 3. 访问应用
-- 前端: http://localhost:5173
-- 后端API: http://localhost:5001
+### 4. 测试 API
 
-## 🛠️ 可用命令
+启动后，您可以测试以下端点：
 
 ```bash
-# 开发
-npm run dev                    # 同时启动前后端
-npm run dev:backend           # 仅启动后端
-npm run dev:frontend          # 仅启动前端
+# 测试 API 是否工作
+curl http://localhost:3000/api/test
 
-# 构建
-npm run build                 # 构建前端
-npm run build:frontend        # 构建前端
-
-# 部署
-npm start                     # 启动生产环境后端
-
-# 数据库
-npm run reset-db              # 重置数据库
-
-# 代码质量
-npm run lint                  # 代码检查
+# 测试登录接口
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"123456"}'
 ```
 
-## 🌟 功能特性
+## 部署到 Vercel
 
-### 🌍 多语言支持
-- **8种语言**: 中文、英文、日文、韩文、法文、德文、西班牙文、意大利文
-- **实时切换**: 无需刷新页面
-- **语言记忆**: 自动保存用户偏好
+1. 将代码推送到 GitHub
+2. 在 Vercel 中导入项目
+3. Vercel 会自动识别项目结构并部署
 
-### 🔐 用户系统
-- **注册/登录**: 完整的用户认证
-- **个人偏好**: 学习用户口味偏好
-- **历史记录**: 保存推荐历史
+### 部署配置
 
-### 🍳 智能推荐
-- **AI驱动**: 基于OpenAI的个性化推荐
-- **食材识别**: 支持多种食材输入
-- **营养分析**: 详细的营养成分信息
-- **步骤指导**: 详细的烹饪步骤
+- **构建命令**: `npm run build`
+- **输出目录**: `dist`
+- **API 路由**: `/api/*` 自动路由到 `/api/index.js`
+- **前端路由**: 所有其他路由重定向到 `index.html`
 
-### 🏘️ 社区功能
-- **食谱分享**: 用户可分享自己的食谱
-- **评分系统**: 用户可对食谱进行评分
-- **搜索功能**: 按食材、菜系等搜索
+## 可用的脚本
 
-## 🔧 技术栈
+### 前端脚本
+- `npm run dev` - 启动前端开发服务器
+- `npm run build` - 构建前端生产版本
+- `npm run preview` - 预览构建结果
+
+### 后端脚本
+- `npm run api:dev` - 启动后端开发服务器
+- `npm run api:start` - 启动后端生产服务器
+- `npm run api:reset-db` - 重置数据库
+- `npm run api:check-env` - 检查环境变量
+
+## API 端点
+
+- `/api/auth` - 用户认证
+- `/api/preference` - 用户偏好
+- `/api/rating` - 评分系统
+- `/api/community` - 社区功能
+- `/api/chat` - 聊天功能
+- `/api/image` - 图片处理
+- `/api/interactive` - 交互功能
+
+## 技术栈
 
 ### 前端
-- **React 19** - 用户界面框架
-- **Vite** - 构建工具
-- **Tailwind CSS** - 样式框架
-- **Axios** - HTTP客户端
+- React 19
+- Vite
+- Tailwind CSS
+- Axios
 
 ### 后端
-- **Node.js** - 运行环境
-- **Express** - Web框架
-- **Sequelize** - ORM框架
-- **PostgreSQL** - 数据库
-- **OpenAI API** - AI服务
+- Express.js
+- PostgreSQL
+- Sequelize ORM
+- Multer (文件上传)
+- Sharp (图片处理)
 
-### 部署
-- **Vercel** - 全栈部署平台
-- **Serverless** - 无服务器架构
+## 注意事项
 
-## 📦 环境变量
-
-### 开发环境
-```bash
-# 后端 (.env)
-USE_MOCK=true                    # 启用Mock模式
-OPENAI_API_KEY=your_api_key      # OpenAI API密钥
-PORT=5001                        # 服务器端口
-```
-
-### 生产环境 (Vercel)
-```bash
-USE_MOCK=true
-NODE_ENV=production
-```
-
-## 🚀 部署
-
-### Vercel部署 (推荐)
-1. 推送代码到GitHub
-2. 在Vercel中导入项目
-3. 设置环境变量
-4. 自动部署完成
-
-详细步骤请参考 [DEPLOYMENT.md](./DEPLOYMENT.md)
-
-## 🤝 贡献
-
-1. Fork 项目
-2. 创建功能分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 打开 Pull Request
-
-## 📄 许可证
-
-本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情
-
-## 📞 支持
-
-如有问题或建议，请：
-- 创建 Issue
-- 发送邮件
-- 联系维护者
-
----
-
-**享受烹饪的乐趣！** 🍽️
+1. 在开发环境中，前端通过 Vite 代理访问后端 API
+2. 在生产环境中，Vercel 会自动处理 API 路由
+3. 确保数据库连接字符串正确配置
+4. 可以使用 Mock 模式进行开发（设置 `USE_MOCK=true`）

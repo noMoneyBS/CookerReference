@@ -1,178 +1,124 @@
-# 完整部署指南 - 一次性部署前后端
+# 部署指南
 
-## 项目架构
+## Vercel 部署
 
+### 1. 项目结构
+项目已重构为 Vercel 支持的全栈结构：
 ```
-CookerReference/
-├── api/
-│   └── index.js              # Vercel Serverless函数（使用ExpressDemo的所有功能）
-├── ExpressDemo/              # 完整的后端实现
-│   ├── routes/               # API路由
-│   ├── models/               # 数据库模型
-│   ├── services/             # 业务逻辑
-│   └── config/               # 数据库配置
-├── ReactDemo/                # React前端应用
-├── vercel.json               # Vercel配置
-└── package.json              # 项目配置
+root/
+├── api/              # Express 后端
+├── src/              # React 前端
+├── index.html        # 前端入口
+├── vite.config.js    # Vite 配置
+├── package.json      # 前端依赖
+└── vercel.json       # Vercel 配置
 ```
 
-## 核心设计
+### 2. 环境变量配置
 
-### api/index.js 的作用
-- 作为Vercel Serverless函数的入口
-- 直接使用ExpressDemo的所有路由和功能
-- 支持Mock模式和数据库模式
-- 提供完整的API功能
+在 Vercel 项目设置中配置以下环境变量：
 
-### 部署策略
-- **一次部署**: 只需要部署到Vercel
-- **完整功能**: 前端 + 后端API + 数据库（可选）
-- **灵活配置**: 通过环境变量控制功能
+#### 必需的环境变量
+- `DATABASE_URL`: PostgreSQL 数据库连接字符串
+- `USE_MOCK`: 是否使用 Mock 模式 (true/false)
 
-## 部署步骤
+#### 可选的环境变量
+- `PORT`: 服务器端口 (默认: 5001)
+- `NODE_ENV`: 环境模式 (development/production)
 
-### 1. 本地测试
+### 3. 部署步骤
 
+1. **推送代码到 GitHub**
+   ```bash
+   git add .
+   git commit -m "重构为 Vercel 全栈项目"
+   git push origin main
+   ```
+
+2. **在 Vercel 中导入项目**
+   - 登录 Vercel
+   - 点击 "New Project"
+   - 选择 GitHub 仓库
+   - 配置环境变量
+   - 部署
+
+3. **自动部署配置**
+   - 构建命令: `npm run build`
+   - 输出目录: `dist`
+   - 安装命令: `npm install && cd api && npm install`
+
+### 4. API 路由
+
+Vercel 会自动处理以下路由：
+- `/api/*` → 路由到 `api/index.js`
+- `/*` → 路由到 `index.html` (前端路由)
+
+### 5. 数据库设置
+
+确保 PostgreSQL 数据库已正确配置：
+1. 创建数据库
+2. 配置连接字符串
+3. 运行数据库迁移 (如果需要)
+
+### 6. 验证部署
+
+部署完成后，访问以下端点验证：
+- 前端: `https://your-project.vercel.app`
+- API: `https://your-project.vercel.app/api/auth`
+
+## 本地开发
+
+### 启动开发服务器
+
+#### 方式一：使用 Vercel Dev（推荐）
 ```bash
-# 安装所有依赖
-npm run install:all
+# 安装依赖
+npm install
+cd api && npm install
 
-# 测试API功能
-npm run test:api
-
-# 本地开发
-npm run dev
+# 同时启动前端和后端 (端口 3000)
+vercel dev
 ```
 
-### 2. Vercel部署
-
+#### 方式二：分别启动
 ```bash
-# 安装Vercel CLI
-npm i -g vercel
+# 安装依赖
+npm install
+cd api && npm install
 
-# 登录Vercel
-vercel login
-
-# 部署到Vercel
-vercel --prod
-```
-
-### 3. 环境变量配置
-
-在Vercel控制台中设置以下环境变量：
-
-#### 基础配置
-```
-USE_MOCK=true              # 使用Mock数据（推荐用于演示）
-NODE_ENV=production
-```
-
-#### 数据库配置（可选）
-```
-USE_MOCK=false             # 使用真实数据库
-DATABASE_URL=postgresql://username:password@host:5432/database
-```
-
-## API端点
-
-部署后，所有ExpressDemo的API都会以 `/api` 前缀提供：
-
-### 用户认证
-- `POST /api/auth/login` - 用户登录
-- `POST /api/auth/register` - 用户注册
-
-### 用户偏好
-- `GET /api/preference` - 获取用户偏好
-- `POST /api/preference/update` - 更新用户偏好
-
-### 社区功能
-- `GET /api/community/recipes` - 获取社区食谱
-- `POST /api/community/share` - 分享食谱
-- `POST /api/community/recipes/:id/rate` - 评分
-
-### 聊天功能
-- `POST /api/chat` - AI聊天
-- `POST /api/interactive` - 交互式聊天
-
-### 图片处理
-- `POST /api/image/upload` - 图片上传
-- `POST /api/image/recognize` - 图片识别
-
-## 功能特性
-
-### Mock模式（USE_MOCK=true）
-- ✅ 完整的Mock数据
-- ✅ 所有API功能
-- ✅ 无需数据库
-- ✅ 快速部署
-
-### 数据库模式（USE_MOCK=false）
-- ✅ 真实数据库连接
-- ✅ 数据持久化
-- ✅ 完整业务逻辑
-- ✅ 需要配置DATABASE_URL
-
-## 开发建议
-
-### 本地开发
-```bash
-# 启动完整的前后端开发环境
+# 启动前端 (端口 3000)
 npm run dev
 
-# 前端: http://localhost:5173
-# 后端: http://localhost:5001
+# 启动后端 (端口 5001)
+npm run api:dev
 ```
 
-### 生产部署
-```bash
-# 部署到Vercel
-vercel --prod
+### 环境变量
 
-# 访问: https://your-project.vercel.app
+在 `api/.env` 文件中配置：
+```env
+DATABASE_URL=postgresql://username:password@localhost:5432/database
+USE_MOCK=false
+PORT=5001
+NODE_ENV=development
 ```
 
-## 常见问题
+## 故障排除
 
-### 1. API返回404
-- 检查vercel.json中的路由配置
-- 确保ExpressDemo路由正确加载
-- 验证API路径是否正确
+### 常见问题
 
-### 2. 数据库连接问题
-- 确保DATABASE_URL环境变量正确
-- 检查数据库是否允许外部连接
-- 如果问题持续，使用Mock模式
+1. **构建失败**
+   - 检查 `package.json` 中的依赖
+   - 确保所有环境变量已配置
 
-### 3. 冷启动延迟
-- Vercel函数首次调用会有延迟
-- 数据库连接会在每次请求时建立
-- 考虑使用连接池优化
+2. **API 路由不工作**
+   - 检查 `vercel.json` 配置
+   - 验证 `api/index.js` 导出正确
 
-### 4. 文件大小限制
-- Vercel函数有大小限制
-- 确保依赖包不会过大
-- 考虑使用CDN存储静态资源
+3. **数据库连接失败**
+   - 检查 `DATABASE_URL` 格式
+   - 确保数据库可访问
 
-## 优势
-
-### 一次性部署
-- ✅ 前端和后端同时部署
-- ✅ 无需管理多个服务器
-- ✅ 自动扩展和负载均衡
-
-### 完整功能
-- ✅ 所有ExpressDemo功能
-- ✅ 支持Mock和数据库模式
-- ✅ 完整的用户系统
-
-### 成本效益
-- ✅ Vercel免费额度
-- ✅ 按使用量计费
-- ✅ 无需服务器维护
-
-## 下一步
-
-1. 部署到Vercel
-2. 配置环境变量
-3. 测试所有功能
-4. 根据需要选择Mock或数据库模式
+4. **前端路由问题**
+   - 检查 `vite.config.js` 代理配置
+   - 验证 `vercel.json` 重写规则

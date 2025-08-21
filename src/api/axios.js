@@ -4,8 +4,8 @@ import axios from "axios";
 // 根据环境选择API地址
 const getApiBaseURL = () => {
   if (import.meta.env.DEV) {
-    // 开发环境使用ExpressDemo服务器
-    return "http://localhost:5001";
+    // 开发环境使用相对路径，让 Vite 代理或 Vercel 处理
+    return "/api";
   } else {
     // 生产环境使用环境变量中的API地址
     return import.meta.env.VITE_API_BASE_URL || "/api";
