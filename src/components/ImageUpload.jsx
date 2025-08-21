@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { API_BASE } from '../config';
 import UploadOptions from './UploadOptions';
 import ProgressBar from './ProgressBar';
 import RecipeDisplay from './RecipeDisplay';
@@ -14,36 +15,55 @@ const ImageUpload = () => {
     const [recipes, setRecipes] = useState('');
     const [uploadProgress, setUploadProgress] = useState(0);
 
-    const onFileChange = (e) => {
-        const file = e.target.files[0];
-        const validImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif', 'image/tiff'];
+    const handleFileChange = (e) => {
+        const selectedFile = e.target.files[0];
 
-        if (!validImageTypes.includes(file.type)) {
-            alert('Only image files are allowed (jpeg, png, gif, webp, heic, heif, tiff)');
+        if (selectedFile) {
+            setFile(selectedFile);
+
+            // 创建文件预览
+            const reader = new FileReader();
+            reader.onloadend = () => setPreview(reader.result);
+            reader.readAsDataURL(selectedFile);
+        } else {
+            setFile(null);
+            setPreview(null);
+        }
+    };
+
+    const addTextEntry = () => {
+        setTextEntries([...textEntries, '']);
+    };
+
+    const removeTextEntry = (index) => {
+        const newEntries = textEntries.filter((_, i) => i !== index);
+        setTextEntries(newEntries);
+    };
+
+    const handleTextChange = (index, value) => {
+        const newEntries = [...textEntries];
+        newEntries[index] = value;
+        setTextEntries(newEntries);
+    };
+
+    const handleUpload = async () => {
+        if (uploadType === 'image' && !file) {
+            setStatus('请先选择一张图片。');
             return;
         }
 
-        setFile(file);
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            setPreview(reader.result);
-        };
-        reader.readAsDataURL(file);
-    };
+        if (uploadType === 'text' && textEntries.every((entry) => entry.trim() === '')) {
+            setStatus('请输入至少一条文字。');
+            return;
+        }
 
-    const onFileUpload = async () => {
         const formData = new FormData();
-
         if (uploadType === 'image') {
-            if (!file) {
-                alert('Please select an image file');
-                return;
-            }
             formData.append('image', file);
-        } else {
-            const texts = textEntries.filter(text => text.trim() !== '');
+        } else if (uploadType === 'text') {
+            const texts = textEntries.filter((t) => t && t.trim() !== '');
             if (texts.length === 0) {
-                alert('Please enter some text');
+                setStatus('请输入至少一条文字。');
                 return;
             }
             texts.forEach((text, index) => {
@@ -52,82 +72,88 @@ const ImageUpload = () => {
         }
 
         try {
-            const res = await axios.post('http://localhost:5001/upload', formData, {
+            const res = await axios.post(`${API_BASE}/upload`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
                 onUploadProgress: (progressEvent) => {
-                    const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-                    setUploadProgress(percentCompleted);
+                    if (!progressEvent.total) return;
+                    const percent = Math.round(
+                        (progressEvent.loaded * 100) / progressEvent.total
+                    );
+                    setUploadProgress(percent);
                 },
             });
-            console.log('Upload successful:', res.data);
-            setRecipes(res.data.recipes);
-            setStatus('Upload successful');
-            setFile(null);
-            setTextEntries(['']);
-            setPreview(null);
-            setUploadProgress(0); // 重置进度条
-        } catch (error) {
-            if (error.response) {
-                const errorCode = error.response.status;
-                if (errorCode === 400) {
-                    setStatus('Bad Request: Please check your input.');
-                } else if (errorCode === 500) {
-                    setStatus('Server Error: Please try again later.');
-                } else {
-                    setStatus(`Error: ${error.response.data.message}`);
-                }
-            } else {
-                setStatus('Network Error: Please check your connection.');
+
+            setStatus('上传成功！');
+            if (res?.data?.recipes) {
+                setRecipes(res.data.recipes);
             }
-            setUploadProgress(0); // 重置进度条
+        } catch (error) {
+            console.error('上传失败:', error);
+            setStatus('上传失败，请稍后重试。');
         }
-    };
-
-    const handleTextChange = (index, value) => {
-        const newTextEntries = [...textEntries];
-        newTextEntries[index] = value;
-        setTextEntries(newTextEntries);
-    };
-
-    const addTextEntry = () => {
-        setTextEntries([...textEntries, '']);
-    };
-
-    const removeTextEntry = (index) => {
-        const newTextEntries = textEntries.filter((_, i) => i !== index);
-        setTextEntries(newTextEntries);
     };
 
     return (
         <div style={styles.container}>
             <div style={styles.leftPanel}>
+                <h2>上传图片或文字</h2>
+
                 <UploadOptions
                     uploadType={uploadType}
                     setUploadType={setUploadType}
-                    onFileChange={onFileChange}
-                    onFileUpload={onFileUpload}
-                    textEntries={textEntries}
-                    handleTextChange={handleTextChange}
-                    addTextEntry={addTextEntry}
-                    removeTextEntry={removeTextEntry}
                 />
-                <PreviewImage preview={preview} />
-                <ProgressBar uploadProgress={uploadProgress} />
-                {status && <p style={styles.status}>{status}</p>}
+
+                {uploadType === 'image' && (
+                    <>
+                        <input type="file" accept="image/*" onChange={handleFileChange} />
+                        {preview && <PreviewImage src={preview} alt="预览" />}
+                    </>
+                )}
+
+                {uploadType === 'text' && (
+                    <div style={styles.textList}>
+                        {textEntries.map((entry, index) => (
+                            <div key={index} style={styles.textItem}>
+                                <textarea
+                                    value={entry}
+                                    onChange={(e) => handleTextChange(index, e.target.value)}
+                                    placeholder={`输入第 ${index + 1} 条文字...`}
+                                    style={styles.textarea}
+                                />
+                                <button
+                                    onClick={() => removeTextEntry(index)}
+                                    style={styles.removeBtn}
+                                    disabled={textEntries.length === 1}
+                                >
+                                    删除
+                                </button>
+                            </div>
+                        ))}
+                        <button onClick={addTextEntry} style={styles.addBtn}>+ 添加一条文字</button>
+                    </div>
+                )}
+
+                <button onClick={handleUpload} style={styles.uploadBtn}>开始上传</button>
+
+                <ProgressBar value={uploadProgress} />
+
+                <div style={styles.status}>{status}</div>
             </div>
+
             <div style={styles.rightPanel}>
+                <h2>推荐食谱</h2>
                 <RecipeDisplay recipes={recipes} />
             </div>
         </div>
     );
 };
 
-const ChatWindow = () => {
-    const [messages, setMessages] = useState([]);
+// 可选：聊天窗口（若你页面里使用了）
+const ChatWindow = ({ user }) => {
     const [input, setInput] = useState('');
-    const [user, setUser] = useState(null); // 用户信息
+    const [messages, setMessages] = useState([]);
 
     const sendMessage = async () => {
         if (!input.trim()) return;
@@ -136,51 +162,41 @@ const ChatWindow = () => {
         setMessages([...messages, newMessage]);
 
         try {
-            const res = await axios.post('http://localhost:5001/chat', {
+            const res = await axios.post(`${API_BASE}/chat`, {
                 userId: user?.id, // 传递用户 ID
                 message: input,
             });
 
             const botMessages = res.data.options.map((option, index) => ({
-                role: 'bot',
-                content: `Option ${index + 1}: ${option}`,
+                role: 'assistant',
+                content: option,
+                id: `bot-${Date.now()}-${index}`,
             }));
 
-            setMessages([...messages, newMessage, ...botMessages]);
+            setMessages((prev) => [...prev, ...botMessages]);
+            setInput('');
         } catch (error) {
-            console.error('Error sending message:', error);
+            console.error('发送消息失败:', error);
         }
-
-        setInput('');
     };
 
     return (
-        <div style={styles.container}>
+        <div>
             <div style={styles.chatBox}>
-                {messages.map((msg, index) => (
-                    <div
-                        key={index}
-                        style={{
-                            ...styles.message,
-                            alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                            backgroundColor: msg.role === 'user' ? '#4CAF50' : '#f1f1f1',
-                        }}
-                    >
-                        {msg.content}
+                {messages.map((m, idx) => (
+                    <div key={idx} style={m.role === 'user' ? styles.userMsg : styles.botMsg}>
+                        {m.content}
                     </div>
                 ))}
             </div>
-            <div style={styles.inputBox}>
+            <div style={styles.chatInputRow}>
                 <input
-                    type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    style={styles.input}
-                    placeholder="Ask for a recipe..."
+                    placeholder="输入消息..."
+                    style={styles.chatInput}
                 />
-                <button onClick={sendMessage} style={styles.button}>
-                    Send
-                </button>
+                <button onClick={sendMessage} style={styles.chatSendBtn}>发送</button>
             </div>
         </div>
     );
@@ -189,46 +205,12 @@ const ChatWindow = () => {
 const styles = {
     container: {
         display: 'flex',
-        flexDirection: 'column',
-        height: '100vh',
-        padding: '20px',
-        background: 'linear-gradient(to bottom, #f5f7fa, #c3cfe2)',
-    },
-    chatBox: {
-        flex: 1,
-        overflowY: 'auto',
-        padding: '10px',
-        border: '1px solid #ccc',
-        borderRadius: '5px',
-        backgroundColor: '#fff',
-    },
-    message: {
-        margin: '10px',
-        padding: '10px',
-        borderRadius: '5px',
-        maxWidth: '60%',
-    },
-    inputBox: {
-        display: 'flex',
-        marginTop: '10px',
-    },
-    input: {
-        flex: 1,
-        padding: '10px',
-        border: '1px solid #ccc',
-        borderRadius: '5px',
-    },
-    button: {
-        marginLeft: '10px',
-        padding: '10px 20px',
-        backgroundColor: '#4CAF50',
-        color: 'white',
-        border: 'none',
-        borderRadius: '5px',
-        cursor: 'pointer',
+        height: '100%',
+        gap: '20px',
     },
     leftPanel: {
         flex: 1,
+        borderRight: '1px solid #eee',
         padding: '20px',
     },
     rightPanel: {
@@ -239,6 +221,90 @@ const styles = {
     status: {
         marginTop: '20px',
         fontSize: '18px',
+    },
+    textList: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+        margin: '10px 0 20px',
+    },
+    textItem: {
+        display: 'flex',
+        gap: '10px',
+        alignItems: 'stretch',
+    },
+    textarea: {
+        flex: 1,
+        minHeight: '72px',
+        padding: '8px',
+        fontSize: '14px',
+        border: '1px solid #ddd',
+        borderRadius: '6px',
+        resize: 'vertical',
+    },
+    removeBtn: {
+        padding: '8px 12px',
+        background: '#eee',
+        border: 'none',
+        borderRadius: '6px',
+        cursor: 'pointer',
+    },
+    addBtn: {
+        padding: '8px 12px',
+        background: '#f6f6ff',
+        border: '1px solid #ddd',
+        borderRadius: '6px',
+        cursor: 'pointer',
+        alignSelf: 'flex-start',
+    },
+    uploadBtn: {
+        padding: '10px 16px',
+        background: '#111',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '6px',
+        cursor: 'pointer',
+    },
+    chatBox: {
+        height: 240,
+        border: '1px solid #eee',
+        borderRadius: 6,
+        padding: 10,
+        marginBottom: 10,
+        overflowY: 'auto',
+        background: '#fafafa',
+    },
+    userMsg: {
+        background: '#dde9ff',
+        borderRadius: 6,
+        padding: '6px 8px',
+        margin: '6px 0',
+        alignSelf: 'flex-end',
+    },
+    botMsg: {
+        background: '#f2f2f2',
+        borderRadius: 6,
+        padding: '6px 8px',
+        margin: '6px 0',
+        alignSelf: 'flex-start',
+    },
+    chatInputRow: {
+        display: 'flex',
+        gap: 10,
+    },
+    chatInput: {
+        flex: 1,
+        padding: '8px 10px',
+        border: '1px solid #ddd',
+        borderRadius: 6,
+    },
+    chatSendBtn: {
+        padding: '8px 12px',
+        background: '#111',
+        color: '#fff',
+        border: 'none',
+        borderRadius: 6,
+        cursor: 'pointer',
     },
 };
 

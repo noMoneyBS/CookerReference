@@ -1,48 +1,34 @@
 // src/api/axios.js
 import axios from "axios";
+import { API_BASE } from "../config";
 
-// 根据环境选择API地址
-const getApiBaseURL = () => {
-  if (import.meta.env.DEV) {
-    // 开发环境使用相对路径，让 Vite 代理或 Vercel 处理
-    return "/api";
-  } else {
-    // 生产环境使用环境变量中的API地址
-    return import.meta.env.VITE_API_BASE_URL || "/api";
-  }
-};
-
+// 单例 axios 实例，统一设置 baseURL 到 API_BASE
 const api = axios.create({
-  baseURL: getApiBaseURL(),
-  withCredentials: true,
-  timeout: 10000, // 10秒超时
+  baseURL: API_BASE,
+  withCredentials: false, // 如需 cookie，可改为 true 并在后端允许
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
-// 请求拦截器
+// 请求拦截器（可按需保留/精简）
 api.interceptors.request.use(
   (config) => {
-    // 添加认证token
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// 响应拦截器
+// 响应拦截器（可按需保留/精简）
 api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error) => {
-    // 处理401错误
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
-      // 可以在这里重定向到登录页面
     }
     return Promise.reject(error);
   }
