@@ -8,6 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "start": "npm run build && npm run preview",
     "api:dev": "cd server && npm run dev",
     "api:start": "cd server && npm start",
     "api:reset-db": "cd server && npm run reset-db",

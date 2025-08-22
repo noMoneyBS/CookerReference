@@ -61,6 +61,8 @@
 
 5. 点击 "Create Static Site"
 
+**重要**: 确保选择 "Static Site" 而不是 "Web Service"，因为前端是静态文件，不需要运行服务器。
+
 ### 3. 配置环境变量
 
 #### 后端环境变量
@@ -97,6 +99,14 @@ VITE_API_URL=https://cooker-backend.onrender.com
 1. **构建失败**: 检查package.json中的依赖是否正确
 2. **数据库连接失败**: 确认DATABASE_URL格式正确
 3. **CORS错误**: 后端已配置CORS，支持所有来源
+4. **"Missing script: start" 错误**: 
+   - 确保后端服务选择 "Web Service" 类型
+   - 确保前端服务选择 "Static Site" 类型
+   - 检查render.yaml中的配置是否正确
+5. **前端无法访问后端API**:
+   - 确认VITE_API_URL环境变量设置正确
+   - 检查后端服务是否正常运行
+   - 查看后端服务的健康检查路径 `/test`
 
 ### 查看日志
 - 在Render Dashboard中点击服务
