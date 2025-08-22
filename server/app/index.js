@@ -61,10 +61,9 @@ const PORT = process.env.PORT || 5001;
 // 导出app供Vercel使用
 module.exports = app;
 
-// 只在开发环境下启动服务器
-if (process.env.NODE_ENV !== 'production') {
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`🔧 当前模式: ${isMock ? "Mock 模式 (不使用数据库)" : "数据库模式 (PostgreSQL)"}`);
-  });
-}
+// 启动服务器（适用于所有环境）
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🔧 当前模式: ${isMock ? "Mock 模式 (不使用数据库)" : "数据库模式 (PostgreSQL)"}`);
+  console.log(`🌍 环境: ${process.env.NODE_ENV || 'development'}`);
+});

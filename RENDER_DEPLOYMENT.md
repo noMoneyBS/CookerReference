@@ -103,7 +103,12 @@ VITE_API_URL=https://cooker-backend.onrender.com
    - 确保后端服务选择 "Web Service" 类型
    - 确保前端服务选择 "Static Site" 类型
    - 检查render.yaml中的配置是否正确
-5. **前端无法访问后端API**:
+5. **"No open ports detected" 错误**:
+   - 确保后端服务器在production环境下也会启动
+   - 检查PORT环境变量是否正确设置（应为10000）
+   - 验证健康检查路径 `/test` 是否可访问
+   - 检查数据库连接是否正常
+6. **前端无法访问后端API**:
    - 确认VITE_API_URL环境变量设置正确
    - 检查后端服务是否正常运行
    - 查看后端服务的健康检查路径 `/test`
