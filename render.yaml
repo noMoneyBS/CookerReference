@@ -1,0 +1,42 @@
+services:
+  # 后端API服务
+  - type: web
+    name: cooker-backend
+    env: node
+    plan: starter
+    buildCommand: cd server && npm install
+    startCommand: cd server && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: cooker-database
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: USE_MOCK
+        value: false
+    healthCheckPath: /test
+    autoDeploy: true
+
+  # 前端静态网站
+  - type: web
+    name: cooker-frontend
+    env: static
+    plan: starter
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://cooker-backend.onrender.com
+    autoDeploy: true
+
+databases:
+  # PostgreSQL数据库
+  - name: cooker-database
+    databaseName: cooker_db
+    user: cooker_user
+    plan: starter

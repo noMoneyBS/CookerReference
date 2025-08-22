@@ -1,6 +1,6 @@
 # Cooker Fullstack Application
 
-这是一个基于 Vercel 的全栈应用，包含 React 前端和 Express 后端。
+这是一个全栈应用，包含 React 前端和 Express 后端，支持部署到 Vercel 或 Render。
 
 ## 项目结构
 
@@ -80,18 +80,29 @@ curl -X POST http://localhost:3000/api/auth/login \
   -d '{"email":"test@example.com","password":"123456"}'
 ```
 
-## 部署到 Vercel
+## 部署选项
+
+### 部署到 Vercel
 
 1. 将代码推送到 GitHub
 2. 在 Vercel 中导入项目
 3. Vercel 会自动识别项目结构并部署
 
-### 部署配置
+### 部署到 Render
 
-- **构建命令**: `npm run build`
-- **输出目录**: `dist`
-- **API 路由**: `/api/*` 自动路由到 `/api/index.js`
-- **前端路由**: 所有其他路由重定向到 `index.html`
+1. 将代码推送到 GitHub
+2. 按照 `RENDER_DEPLOYMENT.md` 中的步骤在Render中创建服务
+3. 配置环境变量
+4. 等待自动部署完成
+
+#### Render部署配置
+
+- **后端**: Web Service (Node.js)
+- **前端**: Static Site (React)
+- **数据库**: PostgreSQL
+- **配置文件**: `render.yaml`
+
+详细步骤请查看 [RENDER_DEPLOYMENT.md](./RENDER_DEPLOYMENT.md)
 
 ## 可用的脚本
 
