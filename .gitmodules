@@ -1,6 +1,0 @@
-[submodule "ExpressDemo"]
-	path = ExpressDemo
-	url = https://github.com/noMoneyBS/ExpressDemo.git
-[submodule "ReactDemo"]
-	path = ReactDemo
-	url = https://github.com/noMoneyBS/ReactDemo.git

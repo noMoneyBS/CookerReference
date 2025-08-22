@@ -8,13 +8,10 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start": "nodemon ./api/index.js",
     "api:dev": "cd server && npm run dev",
     "api:start": "cd server && npm start",
     "api:reset-db": "cd server && npm run reset-db",
-    "api:check-env": "cd server && npm run check-env",
-    "vercel-dev": "vite",
-    "vercel-build": "npm run build"
+    "api:check-env": "cd server && npm run check-env"
   },
   "dependencies": {
     "axios": "^1.11.0",
