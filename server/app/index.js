@@ -30,17 +30,34 @@ app.use((req, res, next) => {
 const isMock = process.env.USE_MOCK === "true";
 
 // 初始化数据库
-if (process.env.USE_MOCK === "true") {
-  console.log("🔧 Mock 模式：跳过数据库初始化");
-} else {
-  initializeDatabase()
-    .then(() => console.log("✅ PostgreSQL 数据库已初始化"))
-    .catch((err) => {
+const initializeApp = async () => {
+  if (process.env.USE_MOCK === "true") {
+    console.log("🔧 Mock 模式：跳过数据库初始化");
+  } else {
+    try {
+      await initializeDatabase();
+      console.log("✅ PostgreSQL 数据库已初始化");
+    } catch (err) {
       console.error("❌ 数据库初始化失败:", err);
       console.log("🔧 切换到 Mock 模式");
       process.env.USE_MOCK = "true";
-    });
-}
+    }
+  }
+  
+  // 启动服务器（适用于所有环境）
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`🔧 当前模式: ${process.env.USE_MOCK === "true" ? "Mock 模式 (不使用数据库)" : "数据库模式 (PostgreSQL)"}`);
+    console.log(`🌍 环境: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🌐 绑定地址: 0.0.0.0:${PORT}`);
+  });
+};
+
+// 启动应用
+initializeApp().catch(err => {
+  console.error("❌ 应用启动失败:", err);
+  process.exit(1);
+});
 
 // 路由 - 在 Vercel 环境中，路径已经去掉了 /api 前缀
 app.use("/auth", require("./routes/auth"));
@@ -60,10 +77,3 @@ const PORT = process.env.PORT || 5001;
 
 // 导出app供Vercel使用
 module.exports = app;
-
-// 启动服务器（适用于所有环境）
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`🔧 当前模式: ${isMock ? "Mock 模式 (不使用数据库)" : "数据库模式 (PostgreSQL)"}`);
-  console.log(`🌍 环境: ${process.env.NODE_ENV || 'development'}`);
-});
