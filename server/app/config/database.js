@@ -89,13 +89,9 @@ const initializeDatabase = async () => {
     setupAssociations();
     console.log('✅ 模型关联设置完成');
     
-    // 同步数据库（开发环境使用）
-    if (process.env.NODE_ENV !== 'production') {
-      await sequelize.sync({ force: false });
-      console.log('✅ 数据库同步完成');
-    } else {
-      console.log('🔧 生产环境：跳过数据库同步');
-    }
+    // 同步数据库（创建表结构）
+    await sequelize.sync({ force: false });
+    console.log('✅ 数据库同步完成');
     
   } catch (error) {
     console.error('数据库初始化失败:', error);
