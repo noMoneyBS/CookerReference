@@ -2,6 +2,7 @@ const express = require("express");
 const axios = require("axios");
 const router = express.Router();
 const { generatePrompt } = require("../locales/prompts");
+const NutritionAnalysisService = require("../services/nutritionAnalysis");
 
 // 如果不是 mock，才加载 Sequelize 模型
 let Preference;
@@ -37,7 +38,7 @@ router.post("/", async (req, res) => {
       // 检测是否为 Gemini API
       const isGemini = process.env.OPENAI_API_URL && process.env.OPENAI_API_URL.includes('generativelanguage.googleapis.com');
       
-      let requestData, headers;
+      let requestData, headers, apiUrl;
       
       if (isGemini) {
         // Gemini API 格式
@@ -51,6 +52,9 @@ router.post("/", async (req, res) => {
         headers = {
           "Content-Type": "application/json",
         };
+        
+        // Gemini API使用API key作为查询参数，而不是Authorization header
+        apiUrl = `${process.env.OPENAI_API_URL}?key=${process.env.OPENAI_API_KEY}`;
       } else {
         // OpenAI API 格式
         requestData = {
@@ -61,10 +65,11 @@ router.post("/", async (req, res) => {
           Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
           "Content-Type": "application/json",
         };
+        apiUrl = process.env.OPENAI_API_URL;
       }
       
       const response = await axios.post(
-        process.env.OPENAI_API_URL,
+        apiUrl,
         requestData,
         { headers }
       );
@@ -78,24 +83,84 @@ router.post("/", async (req, res) => {
       }
       console.log("🔧 返回的食谱数据:", recipes);
       
+      // 解析并修复数据格式
+      let parsedRecipes;
+      try {
+        // 处理Markdown格式的JSON
+        let jsonString = recipes;
+        
+        // 移除Markdown代码块标记
+        if (jsonString.includes('```json')) {
+          console.log("🔧 检测到Markdown格式，正在清理...");
+          jsonString = jsonString.replace(/```json\s*/, '').replace(/\s*```$/, '');
+        }
+        
+        parsedRecipes = JSON.parse(jsonString);
+        console.log("🔧 成功解析为JSON格式");
+        
+        // 修复嵌套数组格式
+        if (Array.isArray(parsedRecipes) && parsedRecipes.length > 0 && Array.isArray(parsedRecipes[0])) {
+          console.log("🔧 检测到嵌套数组格式，正在修复...");
+          // 将嵌套数组展平
+          parsedRecipes = parsedRecipes.flat();
+          console.log("🔧 修复后的数组长度:", parsedRecipes.length);
+        }
+        
+        // 确保是数组格式
+        if (!Array.isArray(parsedRecipes)) {
+          console.log("🔧 数据不是数组格式，转换为数组");
+          parsedRecipes = [parsedRecipes];
+        }
+        
+      } catch (parseError) {
+        console.log("🔧 返回数据不是JSON格式，转换为默认格式");
+        console.log("🔧 解析错误:", parseError.message);
+        // 将纯文本转换为默认的食谱格式
+        parsedRecipes = [
+          {
+            "name": "AI推荐食谱",
+            "ingredients": ["根据您的需求定制"],
+            "steps": [recipes], // 将AI返回的文本作为步骤
+            "nutrients": {"calories":"待计算","protein":"待计算","fat":"待计算"},
+            "description": recipes
+          }
+        ];
+      }
+      
       // 如果不是mock模式，尝试基于用户评分调整推荐
       if (process.env.USE_MOCK !== "true" && RatingService) {
         try {
-          // 解析食谱数据
-          const parsedRecipes = JSON.parse(recipes);
-          
           // 基于评分调整推荐
           const adjustedRecipes = await RatingService.adjustRecommendationsByRating(userId, parsedRecipes);
-          
-          // 返回调整后的食谱
-          recipes = JSON.stringify(adjustedRecipes);
-          console.log("🔧 基于评分调整后的食谱数据:", recipes);
+          parsedRecipes = adjustedRecipes;
+          console.log("🔧 基于评分调整后的食谱数据:", parsedRecipes);
         } catch (error) {
           console.log("🔧 评分调整失败，使用原始推荐:", error.message);
         }
       }
       
-      res.json({ recipes });
+      // 对每个食谱进行营养分析
+      console.log("🔧 开始营养分析...");
+      const analyzedRecipes = parsedRecipes.map(recipe => {
+        try {
+          const analysis = NutritionAnalysisService.analyzeRecipe(recipe);
+          if (analysis) {
+            // 将营养分析结果合并到食谱中
+            return {
+              ...recipe,
+              nutritionAnalysis: analysis
+            };
+          }
+        } catch (error) {
+          console.log("🔧 食谱营养分析失败:", error.message);
+        }
+        return recipe;
+      });
+      
+      console.log("🔧 营养分析完成，食谱数量:", analyzedRecipes.length);
+      
+      // 确保返回有效的JSON
+      res.json({ recipes: JSON.stringify(analyzedRecipes) });
     } catch (apiError) {
       console.error("OpenAI API调用失败:", apiError.message);
       

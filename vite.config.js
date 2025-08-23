@@ -9,9 +9,14 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:5001',
         changeOrigin: true,
-        // 关键：把 /api 前缀去掉，转发为 /xxx
-        //rewrite: (path) => path.replace(/^\/api/, ''),
+        // 开发环境：把 /api 前缀去掉，转发为 /xxx
+        rewrite: (path) => path.replace(/^\/api/, ''),
       },
     },
+  },
+  // 生产环境构建配置
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
   },
 });

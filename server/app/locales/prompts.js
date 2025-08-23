@@ -6,7 +6,9 @@ const prompts = {
 {preferences}
 {context}
 
-请返回 JSON 格式，结构如下：
+**重要：你必须严格按照以下JSON格式返回，不要添加任何其他文字或说明：**
+
+[
 [
   {
     "name": "菜名",
@@ -29,18 +31,22 @@ const prompts = {
       }
     ],
     "nutrition": {
-      "calories": "xxx kcal",
-      "protein": "x g",
-      "fat": "x g",
-      "carbs": "x g",
-      "fiber": "x g"
+      "calories": "具体数值 kcal（如：350 kcal）",
+      "protein": "具体数值 g（如：25 g）",
+      "fat": "具体数值 g（如：15 g）",
+      "carbs": "具体数值 g（如：30 g）",
+      "fiber": "具体数值 g（如：5 g）"
     },
     "tips": ["烹饪小贴士1", "烹饪小贴士2"],
     "tags": ["标签1", "标签2"]
   }
 ]
 
-注意：请确保所有内容（包括菜名、食材、步骤）都使用中文。`,
+**严格注意：**
+1. 必须返回有效的JSON格式，不要添加任何解释文字
+2. 确保所有内容（包括菜名、食材、步骤）都使用中文
+3. 如果无法生成完整信息，请用"待补充"填充相应字段
+4. 只返回JSON数组，不要有其他内容`,
     preferences: {
       prefix: "用户偏好：",
       lowSalt: "少盐",
@@ -61,7 +67,9 @@ Ingredients: {ingredients}
 {preferences}
 {context}
 
-Please return in JSON format as follows:
+**IMPORTANT: You must return exactly in the following JSON format, do not add any other text or explanations:**
+
+[
 [
   {
     "name": "Recipe Name",
@@ -84,18 +92,22 @@ Please return in JSON format as follows:
       }
     ],
     "nutrition": {
-      "calories": "xxx kcal",
-      "protein": "x g",
-      "fat": "x g",
-      "carbs": "x g",
-      "fiber": "x g"
+      "calories": "specific value kcal (e.g., 350 kcal)",
+      "protein": "specific value g (e.g., 25 g)",
+      "fat": "specific value g (e.g., 15 g)",
+      "carbs": "specific value g (e.g., 30 g)",
+      "fiber": "specific value g (e.g., 5 g)"
     },
     "tips": ["Cooking tip 1", "Cooking tip 2"],
     "tags": ["tag1", "tag2"]
   }
 ]
 
-Note: Please ensure all content (including recipe names, ingredients, and steps) is in English.`,
+**STRICT REQUIREMENTS:**
+1. Must return valid JSON format only, no additional explanatory text
+2. Ensure all content (including recipe names, ingredients, and steps) is in English
+3. If unable to generate complete information, use "TBD" for missing fields
+4. Return only the JSON array, no other content`,
     preferences: {
       prefix: "User preferences: ",
       lowSalt: "low salt",
@@ -116,17 +128,23 @@ Note: Please ensure all content (including recipe names, ingredients, and steps)
 {preferences}
 {context}
 
-以下のJSON形式で返してください：
+**重要：以下のJSON形式で正確に返してください。他の説明文は追加しないでください：**
+
+[
 [
   {
     "name": "料理名",
     "ingredients": ["食材1","食材2"],
     "steps": ["手順1","手順2"],
-    "nutrients": {"calories":"xxx kcal","protein":"x g","fat":"x g"}
+    "nutrients": {"calories":"具体数值 kcal（如：350 kcal）","protein":"具体数值 g（如：25 g）","fat":"具体数值 g（如：15 g）"}
   }
 ]
 
-注意：すべての内容（料理名、食材、手順を含む）が日本語であることを確認してください。`,
+**厳格な要件：**
+1. 有効なJSON形式のみを返し、説明文は追加しない
+2. すべての内容（料理名、食材、手順を含む）が日本語であることを確認
+3. 完全な情報を生成できない場合は、不足しているフィールドに「要補充」を使用
+4. JSON配列のみを返し、他の内容は含めない`,
     preferences: {
       prefix: "ユーザー好み：",
       lowSalt: "減塩",
@@ -147,17 +165,23 @@ Note: Please ensure all content (including recipe names, ingredients, and steps)
 {preferences}
 {context}
 
-다음 JSON 형식으로 반환해 주세요:
+**중요: 다음 JSON 형식으로 정확히 반환하세요. 다른 설명문은 추가하지 마세요:**
+
+[
 [
   {
     "name": "요리명",
     "ingredients": ["재료1","재료2"],
     "steps": ["단계1","단계2"],
-    "nutrients": {"calories":"xxx kcal","protein":"x g","fat":"x g"}
+    "nutrients": {"calories":"구체적 수치 kcal（예：350 kcal）","protein":"구체적 수치 g（예：25 g）","fat":"구체적 수치 g（예：15 g）"}
   }
 ]
 
-참고: 모든 내용(요리명, 재료, 단계 포함)이 한국어인지 확인해 주세요.`,
+**엄격한 요구사항:**
+1. 유효한 JSON 형식만 반환하고, 설명문은 추가하지 않음
+2. 모든 내용(요리명, 재료, 단계 포함)이 한국어인지 확인
+3. 완전한 정보를 생성할 수 없는 경우, 부족한 필드에 "보완 필요" 사용
+4. JSON 배열만 반환하고, 다른 내용은 포함하지 않음`,
     preferences: {
       prefix: "사용자 선호도: ",
       lowSalt: "저염",
@@ -184,7 +208,7 @@ Veuillez retourner au format JSON comme suit :
     "name": "Nom de la recette",
     "ingredients": ["ingrédient1","ingrédient2"],
     "steps": ["étape1","étape2"],
-    "nutrients": {"calories":"xxx kcal","protein":"x g","fat":"x g"}
+    "nutrients": {"calories":"valeur spécifique kcal (ex: 350 kcal)","protein":"valeur spécifique g (ex: 25 g)","fat":"valeur spécifique g (ex: 15 g)"}
   }
 ]
 
@@ -215,7 +239,7 @@ Bitte geben Sie im JSON-Format zurück:
     "name": "Rezeptname",
     "ingredients": ["zutat1","zutat2"],
     "steps": ["schritt1","schritt2"],
-    "nutrients": {"calories":"xxx kcal","protein":"x g","fat":"x g"}
+    "nutrients": {"calories":"spezifischer Wert kcal (z.B. 350 kcal)","protein":"spezifischer Wert g (z.B. 25 g)","fat":"spezifischer Wert g (z.B. 15 g)"}
   }
 ]
 
@@ -246,7 +270,7 @@ Por favor devuelve en formato JSON como sigue:
     "name": "Nombre de la receta",
     "ingredients": ["ingrediente1","ingrediente2"],
     "steps": ["paso1","paso2"],
-    "nutrients": {"calories":"xxx kcal","protein":"x g","fat":"x g"}
+    "nutrients": {"calories":"valor específico kcal (ej: 350 kcal)","protein":"valor específico g (ej: 25 g)","fat":"valor específico g (ej: 15 g)"}
   }
 ]
 
@@ -277,7 +301,7 @@ Per favore restituisci in formato JSON come segue:
     "name": "Nome della ricetta",
     "ingredients": ["ingrediente1","ingrediente2"],
     "steps": ["passo1","passo2"],
-    "nutrients": {"calories":"xxx kcal","protein":"x g","fat":"x g"}
+    "nutrients": {"calories":"valore specifico kcal (es: 350 kcal)","protein":"valore specifico g (es: 25 g)","fat":"valore specifico g (es: 15 g)"}
   }
 ]
 
